@@ -1,6 +1,5 @@
 package aima.core.search.adversarial;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +12,6 @@ import aima.core.search.framework.Metrics;
 import it.unibo.ai.didattica.competition.tablut.domain.State;
 import it.unibo.ai.didattica.competition.tablut.domain.State.Pawn;
 import it.unibo.ai.didattica.competition.tablut.domain.State.Turn;
-import it.unibo.ai.didattica.competition.tablut.domain.Action;
 
 /**
  * Implements an iterative deepening Minimax search with alpha-beta pruning and
@@ -38,9 +36,10 @@ public class IterativeDeepeningAlphaBetaSearch<S, A, P> implements AdversarialSe
 	private boolean heuristicEvaluationUsed; // indicates that non-terminal nodes have been evaluated.
 	private Timer timer;
 	private boolean logEnabled;
-
-	private int lastPawns;
 	private Metrics metrics = new Metrics();
+	// INIZIO AGGIUNTA
+	private int lastPawns = 24;
+	// FINE AGGIUNTA
 
 	/**
 	 * Creates a new search object for a given game.
@@ -76,7 +75,6 @@ public class IterativeDeepeningAlphaBetaSearch<S, A, P> implements AdversarialSe
 		this.utilMin = utilMin;
 		this.utilMax = utilMax;
 		this.timer = new Timer(time);
-		this.lastPawns=24;
 	}
 
 	public void setLogEnabled(boolean b) {
@@ -89,21 +87,23 @@ public class IterativeDeepeningAlphaBetaSearch<S, A, P> implements AdversarialSe
 	 * Monsio who had the idea of ordering actions by utility in subsequent
 	 * depth-limited search runs.
 	 */
-	private int move = 1;
 	@Override
-	public A makeDecision(S state) {State s=(State)state;
-		AIMAGameAshtonTablut g = (AIMAGameAshtonTablut)game;
-		int currentPawns=s.getNumberOf(Pawn.BLACK)+s.getNumberOf(Pawn.WHITE);
-		if(currentPawns<lastPawns)
+	public A makeDecision(S state) {
+		// INIZIO AGGIUNTA
+		State s = (State) state;
+		AIMAGameAshtonTablut g = (AIMAGameAshtonTablut) game;
+		int currentPawns = s.getNumberOf(Pawn.BLACK) + s.getNumberOf(Pawn.WHITE);
+		if (currentPawns < lastPawns)
 			g.clearCache(currentPawns);
-		lastPawns=currentPawns;		
+		lastPawns = currentPawns;
+		// FINE AGGIUNTA
 		metrics = new Metrics();
 		StringBuffer logText = null;
 		P player = game.getPlayer(state);
-		if(((State)state).getBoard()[2][2].toString().equals("K"))
-			System.out.print("");
 		List<A> results = orderActions(state, game.getActions(state), player, 0);
-		Map<State, List<Symmetry>> realDrawConditions=new HashMap<State, List<Symmetry>>(g.getDrawConditions()); 
+		// INIZIO AGGIUNTA
+		Map<State, List<Symmetry>> realDrawConditions = new HashMap<State, List<Symmetry>>(g.getDrawConditions());
+		// FINE AGGIUNTA
 		timer.start();
 		currDepthLimit = 0;
 		do {
@@ -133,15 +133,20 @@ public class IterativeDeepeningAlphaBetaSearch<S, A, P> implements AdversarialSe
 						break; // exit from iterative deepening loop
 				}
 			}
+			// INIZIO AGGIUNTA
 			g.setDrawConditions(realDrawConditions);
+			// FINE AGGIUNTA
 		} while (!timer.timeOutOccurred() && heuristicEvaluationUsed);
+		// INIZIO AGGIUNTA
 		State post = (State) game.getResult(state, results.get(0));
 		post.setTurn(Turn.DRAW);
 		if (!realDrawConditions.containsKey(post))
 			realDrawConditions.put(post, new ArrayList<>());
-		realDrawConditions.get(post).add(((CanonicalState) post).getApplied().compose(realDrawConditions.get(post).size()>0? realDrawConditions.get(post).getLast():Symmetry.IDENTITY));
+		realDrawConditions.get(post).add(((CanonicalState) post).getApplied().compose(
+				realDrawConditions.get(post).size() > 0 ? realDrawConditions.get(post).getLast() : Symmetry.IDENTITY));
 		g.setDrawConditions(realDrawConditions);
-		System.out.println(state.toString()+ results.get(0));			
+		System.out.println(state.toString() + results.get(0));
+		// FINE AGGIUNTA
 		return results.get(0);
 	}
 
@@ -199,11 +204,9 @@ public class IterativeDeepeningAlphaBetaSearch<S, A, P> implements AdversarialSe
 	 * search step. This implementation increments the current depth limit by one.
 	 */
 	protected void incrementDepthLimit() {
-		if (currDepthLimit > 0) {
-			System.out.println(metrics.get(METRICS_NODES_EXPANDED));
-			if (Integer.valueOf(metrics.get(METRICS_NODES_EXPANDED)) < 2)
-				System.out.println();
-		}
+		// INIZIO AGGIUNTA
+		System.out.println(metrics.get(METRICS_NODES_EXPANDED));
+		// FINE AGGIUNTA
 		currDepthLimit++;
 	}
 

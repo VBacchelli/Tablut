@@ -17,8 +17,7 @@ import it.unibo.ai.didattica.competition.tablut.domain.State;
  */
 public class TavolettaSearch extends IterativeDeepeningAlphaBetaSearch<State, Action, State.Turn> {
 
-    public static final String TEAM_NAME = "Gionnino9000";
-    public static final String PLAYER_NAME = "Tavoletta";
+    public static final String PLAYER_NAME = "TavolettaSlayer";
 
     public TavolettaSearch(Game<State, Action, State.Turn> game, double utilMin, double utilMax, int time) {
         super(game, utilMin, utilMax, time);
@@ -53,7 +52,7 @@ public class TavolettaSearch extends IterativeDeepeningAlphaBetaSearch<State, Ac
     @Override
     public Action makeDecision(State state) {
         Action a = super.makeDecision(state);
-        System.out.println(TEAM_NAME.toUpperCase() + ": " + PLAYER_NAME + " dice che ha esplorato " + getMetrics().get(METRICS_NODES_EXPANDED) + " nodi, raggiungendo una profondità di " + getMetrics().get(METRICS_MAX_DEPTH));
+        System.out.println(PLAYER_NAME + " dice che ha esplorato " + getMetrics().get(METRICS_NODES_EXPANDED) + " nodi, raggiungendo una profondità di " + getMetrics().get(METRICS_MAX_DEPTH));
 
         return a;
     }
