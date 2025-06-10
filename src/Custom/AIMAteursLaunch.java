@@ -15,7 +15,7 @@ import it.unibo.ai.didattica.competition.tablut.domain.State.Turn;
 import aima.core.search.adversarial.*;
 import aima.core.search.adversarial.Game;
 
-public class MelanzaninaMinMax extends it.unibo.ai.didattica.competition.tablut.client.TablutClient {
+public class AIMAteursLaunch extends it.unibo.ai.didattica.competition.tablut.client.TablutClient {
 
 	AIMAGameAshtonTablut tablut;
 	GameAshtonTablut tablut1;
@@ -23,7 +23,7 @@ public class MelanzaninaMinMax extends it.unibo.ai.didattica.competition.tablut.
 	TreeNode last;
 	IterativeDeepeningAlphaBetaSearch<State, Action, Turn> mcts;
 
-	public MelanzaninaMinMax(String player, int timeout, String ipAddress) throws UnknownHostException, IOException {
+	public AIMAteursLaunch(String player, int timeout, String ipAddress) throws UnknownHostException, IOException {
 		super(player.toUpperCase(), "Melanzanin", timeout, ipAddress);
         this.tablut = new AIMAGameAshtonTablut(0, -1, "logs", "white_ai", "black_ai");;
         this.mcts = new TavolettaSearch(tablut, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, timeout-2);
@@ -53,7 +53,7 @@ public class MelanzaninaMinMax extends it.unibo.ai.didattica.competition.tablut.
 					+ "USAGE: ./runmyplayer <black|white> <timeout-in-seconds> <server-ip>\n");
 			System.exit(1);
 		}
-		MelanzaninaMinMax player = new MelanzaninaMinMax(args[0], timeout, ip);
+		AIMAteursLaunch player = new AIMAteursLaunch(args[0], timeout, ip);
 		player.run();
 	}
 
