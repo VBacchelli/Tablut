@@ -1,4 +1,4 @@
-package Custom;
+package custom;
 
 import aima.core.search.adversarial.Game;
 import aima.core.search.adversarial.IterativeDeepeningAlphaBetaSearch;

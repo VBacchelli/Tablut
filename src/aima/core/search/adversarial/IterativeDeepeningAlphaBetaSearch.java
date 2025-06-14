@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import Custom.AIMAGameAshtonTablut;
-import Custom.CanonicalState;
-import Custom.CanonicalState.Symmetry;
 import aima.core.search.framework.Metrics;
+import custom.AIMAGameAshtonTablut;
+import custom.CanonicalState;
+import custom.CanonicalState.Symmetry;
 import it.unibo.ai.didattica.competition.tablut.domain.State;
 import it.unibo.ai.didattica.competition.tablut.domain.State.Pawn;
 import it.unibo.ai.didattica.competition.tablut.domain.State.Turn;

@@ -1,4 +1,4 @@
-package Custom;
+package custom;
 
 import it.unibo.ai.didattica.competition.tablut.domain.Action;
 import it.unibo.ai.didattica.competition.tablut.domain.State;

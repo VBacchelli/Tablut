@@ -1,4 +1,4 @@
-package Custom;
+package custom;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +16,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import custom.BlackHeuristics;
+import custom.Heuristics;
+import custom.WhiteHeuristics;
+import custom.CanonicalState.Symmetry;
 import it.unibo.ai.didattica.competition.tablut.domain.Action;
 import it.unibo.ai.didattica.competition.tablut.domain.Game;
 import it.unibo.ai.didattica.competition.tablut.domain.State;
@@ -23,10 +27,6 @@ import it.unibo.ai.didattica.competition.tablut.domain.State.Pawn;
 import it.unibo.ai.didattica.competition.tablut.domain.State.Turn;
 import it.unibo.ai.didattica.competition.tablut.domain.StateTablut;
 import it.unibo.ai.didattica.competition.tablut.exceptions.*;
-import Custom.BlackHeuristics;
-import Custom.CanonicalState.Symmetry;
-import Custom.Heuristics;
-import Custom.WhiteHeuristics;
 
 /**
  * 
