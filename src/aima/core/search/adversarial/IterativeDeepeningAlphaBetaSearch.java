@@ -134,10 +134,10 @@ public class IterativeDeepeningAlphaBetaSearch<S, A, P> implements AdversarialSe
 				}
 			}
 			// INIZIO AGGIUNTA
-			g.setDrawConditions(realDrawConditions);
+			// g.setDrawConditions(realDrawConditions);
 			// FINE AGGIUNTA
 		} while (!timer.timeOutOccurred() && heuristicEvaluationUsed);
-		// INIZIO AGGIUNTA
+		/* INIZIO AGGIUNTA
 		State post = (State) game.getResult(state, results.get(0));
 		post.setTurn(Turn.DRAW);
 		if (!realDrawConditions.containsKey(post))
@@ -146,7 +146,7 @@ public class IterativeDeepeningAlphaBetaSearch<S, A, P> implements AdversarialSe
 				realDrawConditions.get(post).size() > 0 ? realDrawConditions.get(post).getLast() : Symmetry.IDENTITY));
 		g.setDrawConditions(realDrawConditions);
 		System.out.println(state.toString() + results.get(0));
-		// FINE AGGIUNTA
+		// FINE AGGIUNTA */
 		return results.get(0);
 	}
 

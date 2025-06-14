@@ -26,8 +26,7 @@ public class CanonicalState extends StateTablut {
 
 		static {
 			// Helper: chiave ordinata per sfruttare simmetrie commutative
-			BiFunction<Symmetry, Symmetry, String> key = (a, b) ->
-				a.name() + "|" + b.name();
+			BiFunction<Symmetry, Symmetry, String> key = (a, b) -> a.name() + "|" + b.name();
 
 			// Composizioni manuali
 			COMPOSITION_MAP.put(key.apply(IDENTITY, IDENTITY), IDENTITY);
@@ -102,7 +101,7 @@ public class CanonicalState extends StateTablut {
 			COMPOSITION_MAP.put(key.apply(REFLECT_DIAGONAL_ANTI, REFLECT_DIAGONAL_MAIN), ROTATE_180);
 			COMPOSITION_MAP.put(key.apply(REFLECT_DIAGONAL_ANTI, REFLECT_DIAGONAL_ANTI), IDENTITY);
 		}
-		
+
 		public Symmetry compose(Symmetry other) {
 			String k = this.name() + "|" + other.name();
 			Symmetry result = COMPOSITION_MAP.get(k);
@@ -111,11 +110,10 @@ public class CanonicalState extends StateTablut {
 			}
 			return result;
 		}
-		
+
 		public int getContentIndexesForCell(int i, int j) {
 			return this.transformation.apply(i, j);
 		}
-
 
 		private BiFunction<Integer, Integer, Integer> transformation;
 
@@ -204,45 +202,143 @@ public class CanonicalState extends StateTablut {
 							return comparison;
 						else if (comparison > 0)
 							isBest = true;
-					}			
+					}
 				}
 			return comparison;
+		}
+
+		private static final int BOARD_SIZE = 9;
+		private static final int CELLS = BOARD_SIZE * BOARD_SIZE;
+
+		private static final int[][] COORD_MAP = new int[values().length][CELLS];
+		private static final long[][] ZOBRIST = new long[CELLS][Pawn.values().length];
+
+		static {
+			for (Symmetry s : values()) {
+				int[] map = new int[CELLS];
+				for (int i = 0; i < BOARD_SIZE; i++)
+					for (int j = 0; j < BOARD_SIZE; j++) {
+						int row = i, col = j;
+						switch (s) {
+						case ROTATE_90:
+							row = BOARD_SIZE - 1 - j;
+							col = i;
+							break;
+						case ROTATE_180:
+							row = BOARD_SIZE - 1 - i;
+							col = BOARD_SIZE - 1 - j;
+							break;
+						case ROTATE_270:
+							row = j;
+							col = BOARD_SIZE - 1 - i;
+							break;
+						case REFLECT_HORIZONTAL:
+							row = BOARD_SIZE - 1 - i;
+							break;
+						case REFLECT_VERTICAL:
+							col = BOARD_SIZE - 1 - j;
+							break;
+						case REFLECT_DIAGONAL_MAIN:
+							row = j;
+							col = i;
+							break;
+						case REFLECT_DIAGONAL_ANTI:
+							row = BOARD_SIZE - 1 - j;
+							col = BOARD_SIZE - 1 - i;
+							break;
+						default:
+							break;
+						}
+						map[i * BOARD_SIZE + j] = row * BOARD_SIZE + col;
+					}
+				COORD_MAP[s.ordinal()] = map;
+			}
+
+			Random r = new Random(0xCAFEBABE);
+			for (int i = 0; i < CELLS; i++)
+				for (int p = 0; p < Pawn.values().length; p++)
+					ZOBRIST[i][p] = r.nextLong();
+		}
+
+		private int[] map() {
+			return COORD_MAP[this.ordinal()];
+		}
+
+		public long hashBoard(Pawn[][] board) {
+			long h = 0;
+			int[] map = map();
+			for (int idx = 0; idx < CELLS; idx++) {
+				int src = map[idx];
+				Pawn p = board[src / BOARD_SIZE][src % BOARD_SIZE];
+				h ^= ZOBRIST[idx][p.ordinal()];
+			}
+			return h;
+		}
+
+		public void applyToBoard(Pawn[][] board, Pawn[][] dest) {
+			int[] map = map();
+			for (int idx = 0; idx < CELLS; idx++) {
+				int src = map[idx];
+				dest[idx / BOARD_SIZE][idx % BOARD_SIZE] = board[src / BOARD_SIZE][src % BOARD_SIZE];
+			}
+		}
+
+		static boolean boardsEqual(Pawn[][] board, Symmetry a, Symmetry b) {
+			int[] ma = COORD_MAP[a.ordinal()];
+			int[] mb = COORD_MAP[b.ordinal()];
+			for (int idx = 0; idx < CELLS; idx++) {
+				Pawn p1 = board[ma[idx] / BOARD_SIZE][ma[idx] % BOARD_SIZE];
+				Pawn p2 = board[mb[idx] / BOARD_SIZE][mb[idx] % BOARD_SIZE];
+				if (p1 != p2)
+					return false;
+			}
+			return true;
 		}
 	}
 
 	private Symmetry applied;
 	private Symmetry inverse;
 	private List<Symmetry> isSymmetricalBy = new ArrayList<>();
-	
-	private CanonicalState(Symmetry applied, Symmetry inverse, Pawn[][] board, State.Turn turn) {
+	private long hash;
+
+	private CanonicalState(Symmetry applied, Symmetry inverse, Pawn[][] board, State.Turn turn, long hash) {
 		super();
 		this.applied = applied;
 		this.inverse = inverse;
 		this.setBoard(board);
 		this.setTurn(turn);
+		this.hash = hash;
+	}
+
+	public CanonicalState() {
+		super();
 	}
 
 	public static CanonicalState from(State original) {
-		// return new CanonicalState(Symmetry.IDENTITY, Symmetry.IDENTITY,
-		// original.clone().getBoard(), original.getTurn());
 		return findCanonical(original.getBoard(), original.getTurn());
 	}
-	
 
 	private static CanonicalState findCanonical(Pawn[][] board, State.Turn turn) {
 		Symmetry[] values = Symmetry.values();
-		CanonicalState best = new CanonicalState(values[0], values[0].getInverse(), board, turn);
-		Pawn[][] bestBoard = best.getBoard();
-		for (int h = 1; h < values.length; h++) {
-			Pawn[][] newBoard = new Pawn[9][9];
-			int comparison = values[h].applyToBoard(board, bestBoard, newBoard);
-			if (comparison>0) {
-				bestBoard = newBoard;
-				best = new CanonicalState(values[h], values[h].getInverse(), newBoard, turn);
-			}
-			else if (comparison == 0) best.isSymmetricalBy.add(values[h].compose(best.getApplied()));
+		Symmetry best = values[0];
+		long bestHash = best.hashBoard(board);
+		List<Symmetry> symmetries = new ArrayList<>();
+
+		for (int i = 1; i < values.length; i++) {
+			long h = values[i].hashBoard(board);
+			if (h < bestHash) {
+				bestHash = h;
+				best = values[i];
+			} else if (h == bestHash)
+				symmetries.add(values[i].compose(best));
 		}
-		return best;
+
+		Pawn[][] newBoard = new Pawn[9][9];
+		best.applyToBoard(board, newBoard);
+
+		CanonicalState result = new CanonicalState(best, best.getInverse(), newBoard, turn, bestHash);
+		result.isSymmetricalBy = symmetries;
+		return result;
 	}
 
 	public Symmetry getApplied() {
@@ -260,5 +356,9 @@ public class CanonicalState extends StateTablut {
 	public void setApplied(Symmetry applied) {
 		this.applied = applied;
 		this.inverse = applied.getInverse();
+	}
+
+	public long getHash() {
+		return this.hash;
 	}
 }

@@ -36,7 +36,7 @@ import Custom.WhiteHeuristics;
  * @author A. Piretti, Andrea Galassi
  *
  */
-public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.Game<State, Action, State.Turn> {
+public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.Game<CanonicalState, Action, CanonicalState.Turn> {
 
 	/**
 	 * Number of repeated states that can occur before a draw
@@ -52,17 +52,18 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 	private FileHandler fh;
 	private Logger loggGame;
 	private List<String> citadels;
-	private Map<State, Map<Action, State>> results = new HashMap<>();
-	private Map<State, Double> utilities = new HashMap<>();
-	private Map<State, List<Symmetry>> drawConditions = new HashMap<>();
-	private Map<Integer, List<State>> numberOfPawns = new HashMap<>();
+	
+	private Map<Long, Map<Action, CanonicalState>> results = new HashMap<>();
+	private Map<Long, Double> utilities = new HashMap<>();
+	private Map<CanonicalState, List<Symmetry>> drawConditions = new HashMap<>();
+	private Map<Integer, Set<Long>> numberOfPawns = new HashMap<>();
 
 	public AIMAGameAshtonTablut(int repeated_moves_allowed, int cache_size, String logs_folder, String whiteName,
 			String blackName) {
-		this(new StateTablut(), repeated_moves_allowed, cache_size, logs_folder, whiteName, blackName);
+		this(new CanonicalState(), repeated_moves_allowed, cache_size, logs_folder, whiteName, blackName);
 	}
 
-	public AIMAGameAshtonTablut(State state, int repeated_moves_allowed, int cache_size, String logs_folder,
+	public AIMAGameAshtonTablut(CanonicalState state, int repeated_moves_allowed, int cache_size, String logs_folder,
 			String whiteName, String blackName) {
 		super();
 		this.repeated_moves_allowed = repeated_moves_allowed;
@@ -142,7 +143,7 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 
 			// controllo pareggio
 			/*
-			 * int trovati = 0; for (State s : drawConditions) {
+			 * int trovati = 0; for (CanonicalState s : drawConditions) {
 			 * 
 			 * System.out.println(s.toString());
 			 * 
@@ -151,7 +152,7 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 			 * System.out.println("STATO NUOVO:\t" + // state.toLinearString());
 			 * 
 			 * trovati++; if (trovati > repeated_moves_allowed) {
-			 * state.setTurn(State.Turn.DRAW); this.loggGame.
+			 * state.setTurn(CanonicalState.Turn.DRAW); this.loggGame.
 			 * fine("Partita terminata in pareggio per numero di stati ripetuti"); break; }
 			 * } else { // DEBUG: // // System.out.println("DIVERSI:"); //
 			 * System.out.println("STATO VECCHIO:\t" + s.toLinearString()); //
@@ -731,10 +732,9 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 	}
 
 	public void clearCache(Integer newNumberOfPawn) {
-		for (State state : numberOfPawns.get(newNumberOfPawn + 1)) {
+		for (Long state : numberOfPawns.get(newNumberOfPawn + 1)) {
 			results.remove(state);
 			utilities.remove(state);
-			drawConditions.remove(state);
 		}
 	}
 
@@ -748,32 +748,33 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 	 *         the player
 	 */
 	@Override
-	public List<Action> getActions(State state) {
-		State.Turn turn = state.getTurn();
-		if (!drawConditions.containsKey(state)) {
-			State s = state.clone();
+	public List<Action> getActions(CanonicalState state) {
+		CanonicalState.Turn turn = state.getTurn();
+		/*if (!drawConditions.containsKey(state)) {
+			CanonicalState s = state.clone();
 			s.setTurn(Turn.DRAW);
 			drawConditions.put(s, new ArrayList<>());
 			drawConditions.get(s).add(((CanonicalState) state).getApplied());
 		} else
 			drawConditions.get(state)
 					.add(drawConditions.get(state).getLast().compose(((CanonicalState) state).getApplied()));
-		if (!results.containsKey(state)) {
+		*/
+		if (!results.containsKey(state.getHash())) {
 			List<Action> possibleActions = new ArrayList<>();
 			List<String> possibleActionsSymmetries = new ArrayList<>();
 			int pawns = state.getNumberOf(Pawn.WHITE) + state.getNumberOf(Pawn.BLACK);
 			if (!numberOfPawns.containsKey(pawns))
-				numberOfPawns.put(pawns, new ArrayList<State>());
-			numberOfPawns.get(pawns).add(state);
-			results.put(state, new HashMap<>());
+				numberOfPawns.put(pawns, new HashSet<Long>());
+			numberOfPawns.get(pawns).add(state.getHash());
+			results.put(state.getHash(), new HashMap<>());
 			// Loop through rows
 			for (int i = 0; i < 9; i++) {
 				// Loop through columns
 				for (int j = 0; j < 9; j++) {
-					State.Pawn p = state.getPawn(i, j);
+					CanonicalState.Pawn p = state.getPawn(i, j);
 					// If pawn color is equal of turn color
 					if (p.toString().equals(turn.toString())
-							|| (p.equals(State.Pawn.KING) && turn.equals(State.Turn.WHITE))) {
+							|| (p.equals(CanonicalState.Pawn.KING) && turn.equals(CanonicalState.Turn.WHITE))) {
 						boolean alreadyVisitedASymmetricalPawn = false;
 						List<Symmetry> symmetriesOfState = ((CanonicalState) state).getIsSymmetricalBy();
 						for (Symmetry s : symmetriesOfState) {
@@ -795,7 +796,7 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 									break;
 								}
 								// Check if we are moving on an empty cell
-								else if (state.getPawn(k, j).equalsPawn(State.Pawn.EMPTY.toString())) {
+								else if (state.getPawn(k, j).equalsPawn(CanonicalState.Pawn.EMPTY.toString())) {
 
 									String from = state.getBox(i, j);
 									String to = state.getBox(k, j);
@@ -808,8 +809,8 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 									}
 								}
 								/*
-								 * try { State result = CanonicalState.from(checkMove(state.clone(), action));
-								 * if (!results.get(state).containsValue(result)) results.get(state).put(action,
+								 * try { CanonicalState result = CanonicalState.from(checkMove(state.clone(), action));
+								 * if (!results.get(state.getHash()).containsValue(result)) results.get(state.getHash()).put(action,
 								 * result); } catch (Exception e) { break; }
 								 */
 							}
@@ -820,7 +821,7 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 									break;
 								}
 								// Check if we are moving on an empty cell
-								else if (state.getPawn(k, j).equalsPawn(State.Pawn.EMPTY.toString())) {
+								else if (state.getPawn(k, j).equalsPawn(CanonicalState.Pawn.EMPTY.toString())) {
 									String from = state.getBox(i, j);
 									String to = state.getBox(k, j);
 
@@ -833,8 +834,8 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 									}
 								}
 								/*
-								 * try { State result = CanonicalState.from(checkMove(state.clone(), action));
-								 * if (!results.get(state).containsValue(result)) results.get(state).put(action,
+								 * try { CanonicalState result = CanonicalState.from(checkMove(state.clone(), action));
+								 * if (!results.get(state.getHash()).containsValue(result)) results.get(state.getHash()).put(action,
 								 * result); } catch (Exception e) { break; }
 								 */
 							}
@@ -846,7 +847,7 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 									break;
 								}
 								// Check if we are moving on an empty cell
-								else if (state.getPawn(i, k).equalsPawn(State.Pawn.EMPTY.toString())) {
+								else if (state.getPawn(i, k).equalsPawn(CanonicalState.Pawn.EMPTY.toString())) {
 									String from = state.getBox(i, j);
 									String to = state.getBox(i, k);
 
@@ -859,8 +860,8 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 									}
 								}
 								/*
-								 * try { State result = CanonicalState.from(checkMove(state.clone(), action));
-								 * if (!results.get(state).containsValue(result)) results.get(state).put(action,
+								 * try { CanonicalState result = CanonicalState.from(checkMove(state.clone(), action));
+								 * if (!results.get(state.getHash()).containsValue(result)) results.get(state.getHash()).put(action,
 								 * result); } catch (Exception e) { break; }
 								 */
 							}
@@ -871,7 +872,7 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 									break;
 								}
 								// Check if we are moving on an empty cell
-								else if (state.getPawn(i, k).equalsPawn(State.Pawn.EMPTY.toString())) {
+								else if (state.getPawn(i, k).equalsPawn(CanonicalState.Pawn.EMPTY.toString())) {
 									String from = state.getBox(i, j);
 									String to = state.getBox(i, k);
 
@@ -884,8 +885,8 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 									}
 								}
 								/*
-								 * try { State result = CanonicalState.from(checkMove(state.clone(), action));
-								 * if (!results.get(state).containsValue(result)) results.get(state).put(action,
+								 * try { CanonicalState result = CanonicalState.from(checkMove(state.clone(), action));
+								 * if (!results.get(state.getHash()).containsValue(result)) results.get(state.getHash()).put(action,
 								 * result); } catch (Exception e) { break; }
 								 */
 							}
@@ -896,10 +897,10 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 					}
 				}
 			}
-			possibleActions.stream().forEach(p -> results.get(state).put(p, null));
+			possibleActions.stream().forEach(p -> results.get(state.getHash()).put(p, null));
 			return possibleActions;
 		}
-		return results.get(state).keySet().stream().toList();
+		return results.get(state.getHash()).keySet().stream().toList();
 
 		// actions = results.get(canonical).keySet().stream().toList();
 	}
@@ -911,28 +912,26 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 	 * @param state  Current state
 	 * @param action Action admissible on the given state
 	 *
-	 * @return State obtained after performing the action
+	 * @return CanonicalState obtained after performing the action
 	 */
 	@Override
-	public State getResult(State state, Action action) {
-		if (!results.containsKey(state))
-			results.put(state, new HashMap<>());
-		if (!results.get(state).containsKey(action) || results.get(state).get(action) == null)
+	public CanonicalState getResult(CanonicalState state, Action action) {
+		if (!results.containsKey(state.getHash()))
+			results.put(state.getHash(), new HashMap<>());
+		if (!results.get(state.getHash()).containsKey(action) || results.get(state.getHash()).get(action) == null)
 			try {
 				State result = movePawn(state.clone(), action);
-				// State result = CanonicalState.from(checkMove(state.clone(), action));
-				// if (!results.get(state).containsValue(result))
 				if (state.getTurn().equalsTurn("B"))
 					result = this.checkCaptureBlack(result, action);
 				else if (state.getTurn().equalsTurn("W")) {
 					result = this.checkCaptureWhite(result, action);
 				}
-				results.get(state).put(action, CanonicalState.from(result));
+				results.get(state.getHash()).put(action, CanonicalState.from(result));
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.exit(3);
 			}
-		State result = CanonicalState.from(results.get(state).get(action).clone());
+		CanonicalState result = CanonicalState.from(results.get(state.getHash()).get(action).clone());
 		Turn turn = result.getTurn();
 		result.setTurn(Turn.DRAW);
 		if (!drawConditions.containsKey(result) || !drawConditions.get(result)
@@ -950,9 +949,9 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 	 * @return true if the current state is terminal, otherwise false
 	 */
 	@Override
-	public boolean isTerminal(State state) {
-		return state.getTurn().equals(State.Turn.WHITEWIN) || state.getTurn().equals(State.Turn.BLACKWIN)
-				|| state.getTurn().equals(State.Turn.DRAW);
+	public boolean isTerminal(CanonicalState state) {
+		return state.getTurn().equals(CanonicalState.Turn.WHITEWIN) || state.getTurn().equals(CanonicalState.Turn.BLACKWIN)
+				|| state.getTurn().equals(CanonicalState.Turn.DRAW);
 	}
 
 	/**
@@ -964,44 +963,44 @@ public class AIMAGameAshtonTablut implements Game, aima.core.search.adversarial.
 	 * @return Evaluation of the state
 	 */
 	@Override
-	public double getUtility(State state, State.Turn turn) {
+	public double getUtility(CanonicalState state, CanonicalState.Turn turn) {
 		if (!utilities.containsKey(state)) {
 			// Terminal state
-			if ((turn.equals(State.Turn.BLACK) && state.getTurn().equals(State.Turn.BLACKWIN))
-					|| (turn.equals(State.Turn.WHITE) && state.getTurn().equals(State.Turn.WHITEWIN)))
+			if ((turn.equals(CanonicalState.Turn.BLACK) && state.getTurn().equals(CanonicalState.Turn.BLACKWIN))
+					|| (turn.equals(CanonicalState.Turn.WHITE) && state.getTurn().equals(CanonicalState.Turn.WHITEWIN)))
 				return Double.POSITIVE_INFINITY; // Win
-			else if ((turn.equals(State.Turn.BLACK) && state.getTurn().equals(State.Turn.WHITEWIN))
-					|| (turn.equals(State.Turn.WHITE) && state.getTurn().equals(State.Turn.BLACKWIN)))
+			else if ((turn.equals(CanonicalState.Turn.BLACK) && state.getTurn().equals(CanonicalState.Turn.WHITEWIN))
+					|| (turn.equals(CanonicalState.Turn.WHITE) && state.getTurn().equals(CanonicalState.Turn.BLACKWIN)))
 				return Double.NEGATIVE_INFINITY; // Lose
 
 			// Non-terminal state => get Heuristics for the current state
-			Heuristics heuristics = turn.equals(State.Turn.WHITE) ? new WhiteHeuristics(state)
+			Heuristics heuristics = turn.equals(CanonicalState.Turn.WHITE) ? new WhiteHeuristics(state)
 					: new BlackHeuristics(state);
-			utilities.put(state, heuristics.evaluateState());
+			utilities.put(state.getHash(), heuristics.evaluateState());
 		}
-		return utilities.get(state);
+		return utilities.get(state.getHash());
 	}
 
-	public Map<State, List<Symmetry>> getDrawConditions() {
+	public Map<CanonicalState, List<Symmetry>> getDrawConditions() {
 		return drawConditions;
 	}
 
-	public void setDrawConditions(Map<State, List<Symmetry>> drawConditions) {
-		this.drawConditions = new HashMap<State, List<Symmetry>>(drawConditions);
+	public void setDrawConditions(Map<CanonicalState, List<Symmetry>> drawConditions) {
+		this.drawConditions = new HashMap<CanonicalState, List<Symmetry>>(drawConditions);
 	}
 
 	@Override
-	public State getInitialState() {
+	public CanonicalState getInitialState() {
 		return null;
 	}
 
 	@Override
-	public State.Turn[] getPlayers() {
-		return State.Turn.values();
+	public CanonicalState.Turn[] getPlayers() {
+		return CanonicalState.Turn.values();
 	}
 
 	@Override
-	public Turn getPlayer(State state) {
+	public Turn getPlayer(CanonicalState state) {
 		return state.getTurn();
 	}
 
