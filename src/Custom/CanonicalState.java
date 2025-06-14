@@ -190,24 +190,96 @@ public class CanonicalState extends StateTablut {
 			return applied;
 		}
 
-		public int applyToBoard(Pawn[][] board, Pawn[][] best, Pawn[][] newBoard) {
-			int n = board.length;
-			boolean isBest = false;
-			int comparison = 0;
-			for (int i = 0; i < n; i++)
-				for (int j = 0; j < n; j++) {
-					int originalIndexes = getContentIndexesForCell(i, j);
-					newBoard[i][j] = board[originalIndexes / 10][originalIndexes % 10];
-					if (!isBest) {
-						comparison = newBoard[i][j].ordinal() - best[i][j].ordinal();
-						if (comparison < 0)
-							return comparison;
-						else if (comparison > 0)
-							isBest = true;
-					}			
-				}
-			return comparison;
-		}
+                private static final int BOARD_SIZE = 9;
+                private static final int CELLS = BOARD_SIZE * BOARD_SIZE;
+
+                private static final int[][] COORD_MAP = new int[values().length][CELLS];
+                private static final long[][] ZOBRIST = new long[CELLS][Pawn.values().length];
+                private static final long[] ZOBRIST_TURN = new long[State.Turn.values().length];
+
+                static {
+                        for (Symmetry s : values()) {
+                                int[] map = new int[CELLS];
+                                for (int i = 0; i < BOARD_SIZE; i++)
+                                        for (int j = 0; j < BOARD_SIZE; j++) {
+                                                int row = i, col = j;
+                                                switch (s) {
+                                                case ROTATE_90:
+                                                        row = BOARD_SIZE - 1 - j;
+                                                        col = i;
+                                                        break;
+                                                case ROTATE_180:
+                                                        row = BOARD_SIZE - 1 - i;
+                                                        col = BOARD_SIZE - 1 - j;
+                                                        break;
+                                                case ROTATE_270:
+                                                        row = j;
+                                                        col = BOARD_SIZE - 1 - i;
+                                                        break;
+                                                case REFLECT_HORIZONTAL:
+                                                        row = BOARD_SIZE - 1 - i;
+                                                        break;
+                                                case REFLECT_VERTICAL:
+                                                        col = BOARD_SIZE - 1 - j;
+                                                        break;
+                                                case REFLECT_DIAGONAL_MAIN:
+                                                        row = j;
+                                                        col = i;
+                                                        break;
+                                                case REFLECT_DIAGONAL_ANTI:
+                                                        row = BOARD_SIZE - 1 - j;
+                                                        col = BOARD_SIZE - 1 - i;
+                                                        break;
+                                                default:
+                                                        break;
+                                                }
+                                                map[i * BOARD_SIZE + j] = row * BOARD_SIZE + col;
+                                        }
+                                COORD_MAP[s.ordinal()] = map;
+                        }
+
+                        Random r = new Random(0xCAFEBABE);
+                        for (int i = 0; i < CELLS; i++)
+                                for (int p = 0; p < Pawn.values().length; p++)
+                                        ZOBRIST[i][p] = r.nextLong();
+                        for (int t = 0; t < State.Turn.values().length; t++)
+                                ZOBRIST_TURN[t] = r.nextLong();
+                }
+
+                private int[] map() {
+                        return COORD_MAP[this.ordinal()];
+                }
+
+                public long hashBoard(Pawn[][] board, State.Turn turn) {
+                        long h = ZOBRIST_TURN[turn.ordinal()];
+                        int[] map = map();
+                        for (int idx = 0; idx < CELLS; idx++) {
+                                int src = map[idx];
+                                Pawn p = board[src / BOARD_SIZE][src % BOARD_SIZE];
+                                h ^= ZOBRIST[idx][p.ordinal()];
+                        }
+                        return h;
+                }
+
+                public void applyToBoard(Pawn[][] board, Pawn[][] dest) {
+                        int[] map = map();
+                        for (int idx = 0; idx < CELLS; idx++) {
+                                int src = map[idx];
+                                dest[idx / BOARD_SIZE][idx % BOARD_SIZE] = board[src / BOARD_SIZE][src % BOARD_SIZE];
+                        }
+                }
+
+                static boolean boardsEqual(Pawn[][] board, Symmetry a, Symmetry b) {
+                        int[] ma = COORD_MAP[a.ordinal()];
+                        int[] mb = COORD_MAP[b.ordinal()];
+                        for (int idx = 0; idx < CELLS; idx++) {
+                                Pawn p1 = board[ma[idx] / BOARD_SIZE][ma[idx] % BOARD_SIZE];
+                                Pawn p2 = board[mb[idx] / BOARD_SIZE][mb[idx] % BOARD_SIZE];
+                                if (p1 != p2)
+                                        return false;
+                        }
+                        return true;
+                }
 	}
 
 	private Symmetry applied;
@@ -229,21 +301,33 @@ public class CanonicalState extends StateTablut {
 	}
 	
 
-	private static CanonicalState findCanonical(Pawn[][] board, State.Turn turn) {
-		Symmetry[] values = Symmetry.values();
-		CanonicalState best = new CanonicalState(values[0], values[0].getInverse(), board, turn);
-		Pawn[][] bestBoard = best.getBoard();
-		for (int h = 1; h < values.length; h++) {
-			Pawn[][] newBoard = new Pawn[9][9];
-			int comparison = values[h].applyToBoard(board, bestBoard, newBoard);
-			if (comparison>0) {
-				bestBoard = newBoard;
-				best = new CanonicalState(values[h], values[h].getInverse(), newBoard, turn);
-			}
-			else if (comparison == 0) best.isSymmetricalBy.add(values[h].compose(best.getApplied()));
-		}
-		return best;
-	}
+        private static CanonicalState findCanonical(Pawn[][] board, State.Turn turn) {
+                Symmetry[] values = Symmetry.values();
+                Symmetry best = values[0];
+                long bestHash = best.hashBoard(board, turn);
+
+                for (int i = 1; i < values.length; i++) {
+                        long h = values[i].hashBoard(board, turn);
+                        if (h < bestHash) {
+                                bestHash = h;
+                                best = values[i];
+                        }
+                }
+
+                List<Symmetry> symmetries = new ArrayList<>();
+                for (Symmetry s : values) {
+                        if (s != best && s.hashBoard(board, turn) == bestHash && Symmetry.boardsEqual(board, s, best)) {
+                                symmetries.add(s.compose(best));
+                        }
+                }
+
+                Pawn[][] newBoard = new Pawn[9][9];
+                best.applyToBoard(board, newBoard);
+
+                CanonicalState result = new CanonicalState(best, best.getInverse(), newBoard, turn);
+                result.isSymmetricalBy = symmetries;
+                return result;
+        }
 
 	public Symmetry getApplied() {
 		return applied;
