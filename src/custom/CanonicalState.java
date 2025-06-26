@@ -299,6 +299,7 @@ public class CanonicalState extends StateTablut {
 	private Symmetry applied;
 	private Symmetry inverse;
 	private List<Symmetry> isSymmetricalBy = new ArrayList<>();
+	private List<Symmetry> alreadyEncounteredSimmetries = new ArrayList<>();
 	private long hash;
 
 	private CanonicalState(Symmetry applied, Symmetry inverse, Pawn[][] board, State.Turn turn, long hash) {

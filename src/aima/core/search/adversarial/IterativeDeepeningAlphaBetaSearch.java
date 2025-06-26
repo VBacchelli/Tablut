@@ -1,17 +1,12 @@
 package aima.core.search.adversarial;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import aima.core.search.framework.Metrics;
 import custom.AIMAGameAshtonTablut;
-import custom.CanonicalState;
-import custom.CanonicalState.Symmetry;
 import it.unibo.ai.didattica.competition.tablut.domain.State;
 import it.unibo.ai.didattica.competition.tablut.domain.State.Pawn;
-import it.unibo.ai.didattica.competition.tablut.domain.State.Turn;
 
 /**
  * Implements an iterative deepening Minimax search with alpha-beta pruning and
@@ -102,7 +97,7 @@ public class IterativeDeepeningAlphaBetaSearch<S, A, P> implements AdversarialSe
 		P player = game.getPlayer(state);
 		List<A> results = orderActions(state, game.getActions(state), player, 0);
 		// INIZIO AGGIUNTA
-		Map<State, List<Symmetry>> realDrawConditions = new HashMap<State, List<Symmetry>>(g.getDrawConditions());
+		// Map<State, List<Symmetry>> realDrawConditions = new HashMap<State, List<Symmetry>>(g.getDrawConditions());
 		// FINE AGGIUNTA
 		timer.start();
 		currDepthLimit = 0;
@@ -205,7 +200,7 @@ public class IterativeDeepeningAlphaBetaSearch<S, A, P> implements AdversarialSe
 	 */
 	protected void incrementDepthLimit() {
 		// INIZIO AGGIUNTA
-		System.out.println(metrics.get(METRICS_NODES_EXPANDED));
+		// System.out.println(metrics.get(METRICS_NODES_EXPANDED));
 		// FINE AGGIUNTA
 		currDepthLimit++;
 	}
