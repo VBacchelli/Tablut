@@ -18,9 +18,10 @@ Per maggiori dettagli consultare il file [LICENSE](./LICENSE).
 
 ## Changelog
 
-Tutte le modifiche apportate al codice originale da **VBacchelli** sono documentate nel file [`CHANGELOG.md`](./CHANGELOG.md).
+Tutte le modifiche apportate al codice originale da **VBacchelli** e il processo di sviluppo sono documentati nel file [`CHANGELOG.md`](./CHANGELOG.md).
 
 Il changelog contiene:
+- I criteri di scelta dell'algoritmo di ricerca nello spazio degli stati utilizzato
 - Le funzionalità aggiunte rispetto al progetto originale  
 - Le modifiche e/o rimozioni di codice esistente  
 - Eventuali correzioni di bug  
