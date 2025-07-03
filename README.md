@@ -33,4 +33,4 @@ Questo per garantire massima trasparenza su come il lavoro di **Gionnino9000** Ã
 ## Riconoscimenti
 
 - Parte di questo progetto si basa sul lavoro di **Gionnino9000** (2022), rilasciato sotto licenza BSD 3-Clause.
-- Puoi trovare il progetto originale al seguente link: [Tavoletta by Gionnino9000](https://github.com/Gionnino9000/Gionnino9000).
+- Ãˆ possibile trovare il progetto originale il progetto originale al seguente link: [Tavoletta by Gionnino9000](https://github.com/Gionnino9000/Gionnino9000).
