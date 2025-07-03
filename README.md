@@ -1,6 +1,7 @@
 # Tablut
 
-https://cdn.aaai.org/ojs/7649/7649-13-11179-1-2-20201228.pdf#:~:text=One%20way%20of%20pruning%20the,The%20expansion%20of%20the
+Questo repository contiene l'implementazione di un player per il gioco **Tablut**, realizzato come parte del corso di Fondamenti di Intelligenza Artificiale M dell'Anno Accademico 2024-2025 (Ingegneria Informatica M - Alma Mater Studiorum, Università di Bologna). Il player è scritto in Java e utilizza la libreria [aima-java](https://github.com/aimacode/aima-java).
+L'algoritmo utilizzato è `IterativeDeepeningAlphaBetaSearch`, con implementazione personalizzata che prende ispirazione dal progetto originale di Gionnino9000 (vedere la sezione {Licenza e Crediti[(#licenza-e-crediti).
 
 ## Licenza e Crediti
 
@@ -29,3 +30,7 @@ Il changelog contiene:
 
 Questo per garantire massima trasparenza su come il lavoro di **Gionnino9000** è stato adattato e ampliato.
 
+---
+
+## Fonti rilevanti
+https://cdn.aaai.org/ojs/7649/7649-13-11179-1-2-20201228.pdf#:~:text=One%20way%20of%20pruning%20the,The%20expansion%20of%20the
