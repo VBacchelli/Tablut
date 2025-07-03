@@ -24,6 +24,8 @@ A parità di euristica e algoritmo, vince la modellazione più efficiente dei me
 L'implementazione base di IterativeDeepening è quella fornita da **AIMA** (Artificial Intelligence: A Modern Approach), grazie all'uso della libreria [aima-java](https://github.com/aimacode/aima-java), e sono state incluse le euristiche e le implementazioni dei metodi astratti introdotte da [Gionnino9000](https://github.com/Gionnino9000/Gionnino9000) nel suo progetto.
 
 Sono state poi apportate delle modifiche a questo codice, in particolare:
-* Modifica dei metodi `getResult()` e `getAction()` per introdurre il caching e le simmetrie.
-* Modifica nel calcolo dell'euristica per correggere la funzione di valutazione degli stati.
+* Creata la classe `CanonicalState` che gestisce tutte le simmetrie del tabellone e permette di trasformare e invertire le azioni.
+* Modifica dei metodi `getResult()` e `getAction()` nella classe  `AIMAGameAshtonTablut` per introdurre meccanismi di caching di mosse e simmetrie.
+* Modifica nel calcolo dell'euristica per correggere la funzione di valutazione degli stati, dando più peso agli stati vincenti.
 * Modifica nella verifica delle condizioni di pareggio (drawConditions) per renderla compatibile con l'introduzione delle simmetrie.
+* Aggiunto `MoveResult` per associare in modo immutabile un'azione con lo stato risultante.
