@@ -24,4 +24,6 @@ A parità di euristica e algoritmo, vince la modellazione più efficiente dei me
 L'implementazione base di IterativeDeepening è quella fornita da **AIMA** (Artificial Intelligence: A Modern Approach), grazie all'uso della libreria [aima-java](https://github.com/aimacode/aima-java), e sono state incluse le euristiche introdotte da [Gionnino9000](https://github.com/Gionnino9000/Gionnino9000) nel suo progetto.
 
 Sono state poi apportate delle modifiche a questo codice, in particolare:
-* 
+* Modifica dei metodi getResult e getAction per introdurre il caching e le simmetrie.
+* Modifica nel calcolo dell'euristica per correggere la funzione di valutazione degli stati.
+* Modifica nella verifica delle condizioni di pareggio (drawConditions) per renderla compatibile con l'introduzione delle simmetrie.
