@@ -4,7 +4,7 @@ https://cdn.aaai.org/ojs/7649/7649-13-11179-1-2-20201228.pdf#:~:text=One%20way%2
 
 ## Licenza e Crediti
 
-Questo progetto include parti di codice originariamente create da **Gionnino9000**, rilasciate sotto la [licenza BSD 3-Clause](./LICENSE).
+Questo progetto include parti di codice originariamente create da **Gionnino9000**, rilasciate sotto la [licenza BSD 3-Clause](./LICENSE). È possibile trovare il progetto originale al seguente link: [Tavoletta by Gionnino9000](https://github.com/Gionnino9000/Gionnino9000).
 
 La licenza originale è stata mantenuta come richiesto dai termini d’uso.
 
@@ -28,9 +28,3 @@ Il changelog contiene:
 
 Questo per garantire massima trasparenza su come il lavoro di **Gionnino9000** è stato adattato e ampliato.
 
----
-
-## Riconoscimenti
-
-- Parte di questo progetto si basa sul lavoro di **Gionnino9000** (2022), rilasciato sotto licenza BSD 3-Clause.
-- È possibile trovare il progetto originale al seguente link: [Tavoletta by Gionnino9000](https://github.com/Gionnino9000/Gionnino9000).
